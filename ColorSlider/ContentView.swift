@@ -8,9 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
+    private enum Field: Int, Hashable {
+        case red, green, blue
+    }
+    
     @State private var redSliderValue = Double.random(in: 0...255)
     @State private var greenSliderValue = Double.random(in: 0...255)
     @State private var blueSliderValue = Double.random(in: 0...255)
+    @State private var alertPresented = false
+    
+    @FocusState private var focusedField: Field?
     
     var body: some View {
         ZStack {
@@ -25,16 +32,58 @@ struct ContentView: View {
                                    blueChannel: $blueSliderValue)
                 .padding(.bottom, 30)
                 
-                
                 SliderView(sliderValue: $redSliderValue, color: .red)
+                    .focused($focusedField, equals: .red)
+                
                 SliderView(sliderValue: $greenSliderValue, color: .green)
+                    .focused($focusedField, equals: .green)
+                
                 SliderView(sliderValue: $blueSliderValue, color: .blue)
+                    .focused($focusedField, equals: .blue)
                 Spacer()
             }
-            .padding()
             
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    
+                    Button {
+                        switch focusedField {
+                        case .red: focusedField = .blue
+                        case .green: focusedField = .red
+                        case .blue: focusedField = .green
+                        case .none:
+                            focusedField = nil
+                        }
+                    } label: {
+                        Image(systemName: "chevron.up")
+                    }
+                    
+                    Button {
+                        switch focusedField {
+                        case .red: focusedField = .green
+                        case .green: focusedField = .blue
+                        case .blue: focusedField = .red
+                        case .none:
+                            focusedField = nil
+                        }
+                    } label: {
+                        Image(systemName: "chevron.down")
+                    }
+                    
+                    Button("Done") {
+                        focusedField = nil
+                    }
+                }
+            }
+            .padding()
         }
     }
+}
+
+
+
+private func checkInput() {
+    
 }
 
 struct ContentView_Previews: PreviewProvider {
@@ -62,12 +111,11 @@ struct SliderView: View {
             Slider(value: $sliderValue, in: 0...255, step: 1)
                 .animation(.linear, value: sliderValue)
                 .tint(color)
-                
-                
             
-            TextField("000", value: $sliderValue, formatter: NumberFormatter())
+            TextField("0", value: $sliderValue, formatter: NumberFormatter())
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 45)
+                .keyboardType(.numberPad)
         }
     }
 }
