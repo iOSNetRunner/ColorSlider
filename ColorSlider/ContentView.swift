@@ -38,117 +38,130 @@ struct ContentView: View {
                                    blueChannel: $blueSliderValue)
                 .padding(.bottom, 30)
                 
-                SliderView(sliderValue: $redSliderValue, enteredValue: $redColorInput, color: .red)
-                    .focused($focusedField, equals: .red)
-                    .onAppear(perform: {
-                        redColorInput = redSliderValue
-                    })
-                    .onChange(of: redSliderValue) { newValue in
-                        redColorInput = newValue
-                        redSliderValue = newValue
-                    }
-                    .onSubmit {
-                        redSliderValue = redColorInput
-                    }
-                    
+                SliderView(sliderValue: $redSliderValue,
+                           enteredValue: $redColorInput,
+                           color: .red)
+                .focused($focusedField, equals: .red)
+                .onAppear(perform: {
+                    redColorInput = redSliderValue
+                })
+                .onChange(of: redSliderValue) { newValue in
+                    redColorInput = newValue
+                    redSliderValue = newValue
+                }
+                .onSubmit {
+                    redSliderValue = redColorInput
+                }
                 
-                SliderView(sliderValue: $greenSliderValue, enteredValue: $greenColorInput, color: .green)
-                    .focused($focusedField, equals: .green)
-                    .onAppear(perform: {
-                        greenColorInput = greenSliderValue
-                    })
-                    .onChange(of: greenSliderValue, perform: { newValue in
-                        greenColorInput = newValue
-                        greenSliderValue = newValue
-                    })
-                    .onSubmit {
-                        greenSliderValue = greenColorInput
-                    }
-                    
                 
-                SliderView(sliderValue: $blueSliderValue, enteredValue: $blueColorInput, color: .blue)
-                    .focused($focusedField, equals: .blue)
-                    .onAppear(perform: {
-                      blueColorInput = blueSliderValue
-                    })
-                    .onChange(of: blueSliderValue, perform: { newValue in
-                        blueColorInput = newValue
-                        blueSliderValue = newValue
-                    })
-                    .onSubmit {
-                        blueSliderValue = blueColorInput
-                    }
-                    
+                SliderView(sliderValue: $greenSliderValue,
+                           enteredValue: $greenColorInput,
+                           color: .green)
+                .focused($focusedField, equals: .green)
+                .onAppear(perform: {
+                    greenColorInput = greenSliderValue
+                })
+                .onChange(of: greenSliderValue) { newValue in
+                    greenColorInput = newValue
+                    greenSliderValue = newValue
+                }
+                .onSubmit {
+                    greenSliderValue = greenColorInput
+                }
+                
+                
+                SliderView(sliderValue: $blueSliderValue,
+                           enteredValue: $blueColorInput,
+                           color: .blue)
+                .focused($focusedField, equals: .blue)
+                .onAppear(perform: {
+                    blueColorInput = blueSliderValue
+                })
+                .onChange(of: blueSliderValue) { newValue in
+                    blueColorInput = newValue
+                    blueSliderValue = newValue
+                }
+                .onSubmit {
+                    blueSliderValue = blueColorInput
+                }
+                
                 Spacer()
             }
             
             .toolbar {
-                
                 ToolbarItemGroup(placement: .keyboard) {
-                    
-                    Button {
-                        switch focusedField {
-                        case .red: focusedField = .blue
-                        case .green: focusedField = .red
-                        case .blue: focusedField = .green
-                        case .none:
-                            focusedField = nil
-                        }
-                    } label: {
+                    Button(action: selectPreviousTextField) {
                         Image(systemName: "chevron.up")
                     }
                     
-                    Button {
-                        switch focusedField {
-                        case .red: focusedField = .green
-                        case .green: focusedField = .blue
-                        case .blue: focusedField = .red
-                        case .none:
-                            focusedField = nil
-                        }
-                    } label: {
+                    Button(action: selectNextTextField) {
                         Image(systemName: "chevron.down")
                     }
                     
                     Spacer()
                     
-                    Button("Done") {
-                        switch focusedField {
-                        case .red:
-                            //redColorInput = redSliderValue
-                            redSliderValue = redColorInput
-                            
-                        case .green:
-                            greenSliderValue = greenColorInput
-                        case .blue:
-                            blueSliderValue = blueColorInput
-                        case .none:
-                            focusedField = nil
+                    Button("Done", action: checkInput)
+                        .fontWeight(.bold)
+                        .alert("Wrong number", isPresented: $alertPresented, actions: {}) {
+                            Text("Enter correct number \nbetween 0 and 255.")
                         }
-                        
-                        focusedField = nil
-                    }
-                    .fontWeight(.bold)
-                    
                 }
-                
-                
-                
             }
             .onTapGesture {
                 focusedField = nil
             }
-            
             .padding()
+        }
+    }
+    
+    private func checkInput() {
+        if redColorInput > 255 {
+            redColorInput = 0
+            alertPresented.toggle()
+        } else if greenColorInput > 255 {
+            greenColorInput = 0
+            alertPresented.toggle()
+        } else if blueColorInput > 255 {
+            blueColorInput = 0
+            alertPresented.toggle()
+        }
+        
+        switch focusedField {
+        case .red:
+            redSliderValue = redColorInput
+        case .green:
+            greenSliderValue = greenColorInput
+        case .blue:
+            blueSliderValue = blueColorInput
+        case .none:
+            focusedField = nil
+        }
+        
+        focusedField = nil
+    }
+    
+    private func selectNextTextField() {
+        switch focusedField {
+        case .red: focusedField = .green
+        case .green: focusedField = .blue
+        case .blue: focusedField = .red
+        case .none:
+            focusedField = nil
+        }
+    }
+    
+    private func selectPreviousTextField() {
+        switch focusedField {
+        case .red: focusedField = .blue
+        case .green: focusedField = .red
+        case .blue: focusedField = .green
+        case .none:
+            focusedField = nil
         }
     }
 }
 
 
-
-private func checkInput() {
-    
-}
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
@@ -158,11 +171,7 @@ struct ContentView_Previews: PreviewProvider {
 
 
 
-
-
-
 struct SliderView: View {
-    
     @Binding var sliderValue: Double
     @Binding var enteredValue: Double
     let color: Color
@@ -181,7 +190,6 @@ struct SliderView: View {
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 45)
                 .keyboardType(.numberPad)
-                
         }
     }
 }
