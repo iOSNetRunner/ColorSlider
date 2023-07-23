@@ -8,13 +8,19 @@
 import SwiftUI
 
 struct ContentView: View {
-    private enum Field: Int, Hashable {
+    
+    private enum Field {
         case red, green, blue
     }
     
     @State private var redSliderValue = Double.random(in: 0...255)
     @State private var greenSliderValue = Double.random(in: 0...255)
     @State private var blueSliderValue = Double.random(in: 0...255)
+    
+    @State private var redColorInput = 0.0
+    @State private var greenColorInput = 0.0
+    @State private var blueColorInput = 0.0
+    
     @State private var alertPresented = false
     
     @FocusState private var focusedField: Field?
@@ -22,8 +28,8 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             Rectangle()
-                .fill(Color.black.gradient)
-                .opacity(0.85)
+                .fill(.black.gradient)
+                .opacity(0.90)
                 .ignoresSafeArea()
             
             VStack {
@@ -32,18 +38,52 @@ struct ContentView: View {
                                    blueChannel: $blueSliderValue)
                 .padding(.bottom, 30)
                 
-                SliderView(sliderValue: $redSliderValue, color: .red)
+                SliderView(sliderValue: $redSliderValue, enteredValue: $redColorInput, color: .red)
                     .focused($focusedField, equals: .red)
+                    .onAppear(perform: {
+                        redColorInput = redSliderValue
+                    })
+                    .onChange(of: redSliderValue) { newValue in
+                        redColorInput = newValue
+                        redSliderValue = newValue
+                    }
+                    .onSubmit {
+                        redSliderValue = redColorInput
+                    }
+                    
                 
-                SliderView(sliderValue: $greenSliderValue, color: .green)
+                SliderView(sliderValue: $greenSliderValue, enteredValue: $greenColorInput, color: .green)
                     .focused($focusedField, equals: .green)
+                    .onAppear(perform: {
+                        greenColorInput = greenSliderValue
+                    })
+                    .onChange(of: greenSliderValue, perform: { newValue in
+                        greenColorInput = newValue
+                        greenSliderValue = newValue
+                    })
+                    .onSubmit {
+                        greenSliderValue = greenColorInput
+                    }
+                    
                 
-                SliderView(sliderValue: $blueSliderValue, color: .blue)
+                SliderView(sliderValue: $blueSliderValue, enteredValue: $blueColorInput, color: .blue)
                     .focused($focusedField, equals: .blue)
+                    .onAppear(perform: {
+                      blueColorInput = blueSliderValue
+                    })
+                    .onChange(of: blueSliderValue, perform: { newValue in
+                        blueColorInput = newValue
+                        blueSliderValue = newValue
+                    })
+                    .onSubmit {
+                        blueSliderValue = blueColorInput
+                    }
+                    
                 Spacer()
             }
             
             .toolbar {
+                
                 ToolbarItemGroup(placement: .keyboard) {
                     
                     Button {
@@ -70,11 +110,35 @@ struct ContentView: View {
                         Image(systemName: "chevron.down")
                     }
                     
+                    Spacer()
+                    
                     Button("Done") {
+                        switch focusedField {
+                        case .red:
+                            //redColorInput = redSliderValue
+                            redSliderValue = redColorInput
+                            
+                        case .green:
+                            greenSliderValue = greenColorInput
+                        case .blue:
+                            blueSliderValue = blueColorInput
+                        case .none:
+                            focusedField = nil
+                        }
+                        
                         focusedField = nil
                     }
+                    .fontWeight(.bold)
+                    
                 }
+                
+                
+                
             }
+            .onTapGesture {
+                focusedField = nil
+            }
+            
             .padding()
         }
     }
@@ -100,6 +164,7 @@ struct ContentView_Previews: PreviewProvider {
 struct SliderView: View {
     
     @Binding var sliderValue: Double
+    @Binding var enteredValue: Double
     let color: Color
     
     var body: some View {
@@ -112,10 +177,11 @@ struct SliderView: View {
                 .animation(.linear, value: sliderValue)
                 .tint(color)
             
-            TextField("0", value: $sliderValue, formatter: NumberFormatter())
+            TextField("0", value: $enteredValue, formatter: NumberFormatter())
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 45)
                 .keyboardType(.numberPad)
+                
         }
     }
 }
