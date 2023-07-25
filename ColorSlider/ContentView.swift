@@ -13,15 +13,9 @@ struct ContentView: View {
         case red, green, blue
     }
     
-    @State private var redSliderValue = Double.random(in: 0...255)
-    @State private var greenSliderValue = Double.random(in: 0...255)
-    @State private var blueSliderValue = Double.random(in: 0...255)
-    
-    @State private var redColorInput = 0.0
-    @State private var greenColorInput = 0.0
-    @State private var blueColorInput = 0.0
-    
-    @State private var alertPresented = false
+    @State private var redSliderValue = Double.random(in: 0...255).rounded()
+    @State private var greenSliderValue = Double.random(in: 0...255).rounded()
+    @State private var blueSliderValue = Double.random(in: 0...255).rounded()
     
     @FocusState private var focusedField: Field?
     
@@ -33,111 +27,47 @@ struct ContentView: View {
                 .ignoresSafeArea()
             
             VStack {
-                GeneratedColorView(redChannel: $redSliderValue,
-                                   greenChannel: $greenSliderValue,
-                                   blueChannel: $blueSliderValue)
+                GeneratedColorView(redChannel: redSliderValue,
+                                   greenChannel: greenSliderValue,
+                                   blueChannel: blueSliderValue)
                 .padding(.bottom, 30)
                 
-                SliderView(sliderValue: $redSliderValue,
-                           enteredValue: $redColorInput,
-                           color: .red)
-                .focused($focusedField, equals: .red)
-                .onAppear(perform: {
-                    redColorInput = redSliderValue
-                })
-                .onChange(of: redSliderValue) { newValue in
-                    redColorInput = newValue
-                    redSliderValue = newValue
-                }
-                .onSubmit {
-                    redSliderValue = redColorInput
-                }
-                
-                
-                SliderView(sliderValue: $greenSliderValue,
-                           enteredValue: $greenColorInput,
-                           color: .green)
-                .focused($focusedField, equals: .green)
-                .onAppear(perform: {
-                    greenColorInput = greenSliderValue
-                })
-                .onChange(of: greenSliderValue) { newValue in
-                    greenColorInput = newValue
-                    greenSliderValue = newValue
-                }
-                .onSubmit {
-                    greenSliderValue = greenColorInput
-                }
-                
-                
-                SliderView(sliderValue: $blueSliderValue,
-                           enteredValue: $blueColorInput,
-                           color: .blue)
-                .focused($focusedField, equals: .blue)
-                .onAppear(perform: {
-                    blueColorInput = blueSliderValue
-                })
-                .onChange(of: blueSliderValue) { newValue in
-                    blueColorInput = newValue
-                    blueSliderValue = newValue
-                }
-                .onSubmit {
-                    blueSliderValue = blueColorInput
+                VStack {
+                    SliderView(value: $redSliderValue, color: .red)
+                        .focused($focusedField, equals: .red)
+                    SliderView(value: $greenSliderValue, color: .green)
+                        .focused($focusedField, equals: .green)
+                    SliderView(value: $blueSliderValue, color: .blue)
+                        .focused($focusedField, equals: .blue)
                 }
                 
                 Spacer()
+                
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Button(action: selectPreviousTextField) {
+                                Image(systemName: "chevron.up")
+                            }
+                            
+                            Button(action: selectNextTextField) {
+                                Image(systemName: "chevron.down")
+                            }
+                            
+                            Spacer()
+                            
+                            Button("Done") {
+                                focusedField = nil
+                            }
+                            .fontWeight(.bold)
+                        }
+                    }
             }
             
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Button(action: selectPreviousTextField) {
-                        Image(systemName: "chevron.up")
-                    }
-                    
-                    Button(action: selectNextTextField) {
-                        Image(systemName: "chevron.down")
-                    }
-                    
-                    Spacer()
-                    
-                    Button("Done", action: checkInput)
-                        .fontWeight(.bold)
-                        .alert("Wrong number", isPresented: $alertPresented, actions: {}) {
-                            Text("Enter correct number \nbetween 0 and 255.")
-                        }
-                }
-            }
-            .onTapGesture {
-                focusedField = nil
-            }
             .padding()
         }
-    }
-    
-    private func checkInput() {
-        if redColorInput > 255 {
-            redColorInput = 0
-            alertPresented.toggle()
-        } else if greenColorInput > 255 {
-            greenColorInput = 0
-            alertPresented.toggle()
-        } else if blueColorInput > 255 {
-            blueColorInput = 0
-            alertPresented.toggle()
-        }
-        
-        switch focusedField {
-        case .red:
-            redSliderValue = redColorInput
-        case .green:
-            greenSliderValue = greenColorInput
-        case .blue:
-            blueSliderValue = blueColorInput
-        case .none:
+        .onTapGesture {
             focusedField = nil
         }
-        
-        focusedField = nil
     }
     
     private func selectNextTextField() {
@@ -162,60 +92,8 @@ struct ContentView: View {
 }
 
 
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
-    }
-}
-
-
-
-struct SliderView: View {
-    @Binding var sliderValue: Double
-    @Binding var enteredValue: Double
-    let color: Color
-    
-    var body: some View {
-        HStack {
-            Text("\(lround(sliderValue))")
-                .frame(width: 35)
-                .foregroundColor(.white)
-            
-            Slider(value: $sliderValue, in: 0...255, step: 1)
-                .animation(.linear, value: sliderValue)
-                .tint(color)
-            
-            TextField("0", value: $enteredValue, formatter: NumberFormatter())
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 45)
-                .keyboardType(.numberPad)
-        }
-    }
-}
-
-
-
-
-
-
-struct GeneratedColorView: View {
-    @Binding var redChannel: Double
-    @Binding var greenChannel: Double
-    @Binding var blueChannel: Double
-    
-    var fullColor: Color {
-        .init(red: redChannel / 255,
-              green: greenChannel / 255,
-              blue: blueChannel / 255)
-    }
-    
-    var body: some View {
-        
-        RoundedRectangle(cornerRadius: 30)
-            .fill(fullColor.gradient)
-            .frame(maxWidth: .infinity, maxHeight: 150)
-            .shadow(color: .black, radius: 15)
-            .overlay(RoundedRectangle(cornerRadius: 30).stroke(.black, lineWidth: 1))
     }
 }
